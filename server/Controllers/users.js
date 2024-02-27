@@ -1,14 +1,13 @@
-import User from "../models/user.js ";
+import User from "../models/User.js";
 
-// read controller
+/* READ */
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
-
     res.status(200).json(user);
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(404).json({ message: err.message });
   }
 };
 
@@ -16,6 +15,7 @@ export const getUserFriends = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
+
     const friends = await Promise.all(
       user.friends.map((id) => User.findById(id))
     );
@@ -24,13 +24,13 @@ export const getUserFriends = async (req, res) => {
         return { _id, firstName, lastName, occupation, location, picturePath };
       }
     );
-
     res.status(200).json(formattedFriends);
   } catch (err) {
-    res.status(404).json({ error: err.message });
+    res.status(404).json({ message: err.message });
   }
 };
 
+/* UPDATE */
 export const addRemoveFriend = async (req, res) => {
   try {
     const { id, friendId } = req.params;
@@ -39,13 +39,14 @@ export const addRemoveFriend = async (req, res) => {
 
     if (user.friends.includes(friendId)) {
       user.friends = user.friends.filter((id) => id !== friendId);
-      friend.friends = friend.friends.filter((ID) => ID !== id);
+      friend.friends = friend.friends.filter((id) => id !== id);
     } else {
       user.friends.push(friendId);
       friend.friends.push(id);
-      await user.save();
-      await friend.save();
     }
+    await user.save();
+    await friend.save();
+
     const friends = await Promise.all(
       user.friends.map((id) => User.findById(id))
     );
@@ -54,8 +55,9 @@ export const addRemoveFriend = async (req, res) => {
         return { _id, firstName, lastName, occupation, location, picturePath };
       }
     );
+
     res.status(200).json(formattedFriends);
   } catch (err) {
-    res.status(401).json({ error: err.message });
+    res.status(404).json({ message: err.message });
   }
 };
